@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-api_keys = [os.getenv('API_1'),os.getenv('API_2'),os.getenv('API_3'),os.getenv('API_4'),os.getenv('API_5'),os.getenv('API_6')]
+api_keys = [os.getenv('API_1'),os.getenv('API_2'),os.getenv('API_3'),os.getenv('API_4'),os.getenv('API_5'),os.getenv('API_6'),os.getenv('API_7'),os.getenv('API_8'),os.getenv('API_9'),os.getenv('API_10')]
 KNOWYOURGST_URL = "https://www.knowyourgst.com/developers/gstincall/"
 
 class AllKeysExhausted(Exception):

@@ -100,9 +100,11 @@ const Bills = () => {
                     <td className="px-6 py-4 text-sm">
                       <Badge variant="outline">{t.category}</Badge>
                     </td>
-
-                    <td className="px-6 py-4 text-sm font-semibold">
-                      ₹{Number(t.amount).toFixed(2)}
+                    <td
+                      className={`px-6 py-4 text-sm font-semibold ${Number(t.amount) < 0 ? "text-red-600" : "text-green-600"
+                        }`}
+                    >
+                      ₹{Math.abs(Number(t.amount)).toFixed(2)}
                     </td>
 
                     {/* Status */}
