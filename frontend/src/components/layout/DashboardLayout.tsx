@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { 
   LayoutDashboard, 
   Receipt, 
@@ -31,17 +31,37 @@ const navigation = [
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navigate = useNavigate();
 
+  // ---------------------------------------------------
+  // FETCH FIRST LETTER FROM JWT CLAIMS STORED IN TOKEN
+  // ---------------------------------------------------
+  const [initial, setInitial] = useState("U");
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) return;
+
+      const payload = JSON.parse(atob(token.split(".")[1])); // decode JWT body
+      const fullName = payload?.name || "";
+
+      const first = fullName.trim().split(" ")[0]; // extract first name
+      if (first) setInitial(first[0].toUpperCase());
+    } catch (err) {
+      console.error("Failed to decode token:", err);
+    }
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-muted/30">
       <aside className="w-64 bg-card border-r border-border fixed h-full">
         <div className="p-6">
           <div className="flex items-center gap-2 mb-8">
             <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-info-blue flex items-center justify-center">
-            <img
-              src="/favicon.ico"
-              alt="Logo"
-              className="h-10 w-10 rounded-lg object-cover"
-            />
+              <img
+                src="/favicon.ico"
+                alt="Logo"
+                className="h-10 w-10 rounded-lg object-cover"
+              />
             </div>
             <div>
               <h2 className="font-bold text-lg">LUMEN</h2>
@@ -86,20 +106,19 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 Your financial insights powered by LUMEN AI
               </p>
             </div>
-            <Avatar 
+
+            <Avatar
               className="cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate("/profile")}
             >
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                U
+              <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                {initial}
               </AvatarFallback>
             </Avatar>
           </div>
         </header>
-        
-        <div className="p-8">
-          {children}
-        </div>
+
+        <div className="p-8">{children}</div>
       </main>
     </div>
   );
