@@ -57,13 +57,12 @@ def login():
 
     user = User.query.filter_by(email=email).first()
     if not user or not check_password_hash(user.password_hash, pwd):
-        return jsonify({"error": "Invalid credentials"}), 402
+        return jsonify({"error": "Invalid credentials"}), 401   # <-- FIXED
 
     access = create_access_token(identity=str(user.id), additional_claims=_claims(user))
     refresh = create_refresh_token(identity=str(user.id), additional_claims=_claims(user))
 
     return jsonify({"access": access, "refresh": refresh})
-
 
 @auth_bp.get("/me")
 @jwt_required()
@@ -85,7 +84,6 @@ def me():
         "annual_salary": user.annual_salary,
         "address": user.address,
     })
-
 
 @auth_bp.put("/update-profile")
 @jwt_required()
