@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,14 +7,72 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Camera, Save } from "lucide-react";
 import { toast } from "sonner";
+import api from "@/lib/api";
 
 const Profile = () => {
+  const [loading, setLoading] = useState(true);
+
+  const [user, setUser] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone_number: "",
+    organization: "",
+  });
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const res = await api.get("/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(res.data);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    // TODO: Implement actual profile update
-    toast.success("Profile updated successfully!");
+
+    try {
+      const token = localStorage.getItem("access_token");
+
+      await api.put(
+        "/auth/update-profile",
+        {
+          first_name: user.first_name,
+          last_name: user.last_name,
+          email: user.email,
+          phone_number: user.phone_number,
+          organization: user.organization,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      toast.success("Profile updated successfully!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Update failed");
+    }
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <p className="text-center mt-10">Loading profile...</p>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -26,12 +85,11 @@ const Profile = () => {
         </div>
 
         <Card className="p-8 rounded-2xl shadow-lg">
-          {/* Avatar Section */}
           <div className="flex flex-col items-center mb-8">
             <div className="relative">
               <Avatar className="h-24 w-24">
                 <AvatarFallback className="bg-primary text-primary-foreground text-3xl">
-                  U
+                  {user.first_name ? user.first_name[0].toUpperCase() : "U"}
                 </AvatarFallback>
               </Avatar>
               <Button
@@ -52,16 +110,21 @@ const Profile = () => {
                 <Label htmlFor="firstName">First Name</Label>
                 <Input
                   id="firstName"
-                  placeholder="John"
-                  defaultValue="John"
+                  value={user.first_name}
+                  onChange={(e) =>
+                    setUser({ ...user, first_name: e.target.value })
+                  }
                 />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name</Label>
                 <Input
                   id="lastName"
-                  placeholder="Doe"
-                  defaultValue="Doe"
+                  value={user.last_name}
+                  onChange={(e) =>
+                    setUser({ ...user, last_name: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -71,8 +134,8 @@ const Profile = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="john.doe@example.com"
-                defaultValue="john.doe@example.com"
+                value={user.email}
+                onChange={(e) => setUser({ ...user, email: e.target.value })}
               />
             </div>
 
@@ -81,8 +144,10 @@ const Profile = () => {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="+91 1234567890"
-                defaultValue="+91 1234567890"
+                value={user.phone_number}
+                onChange={(e) =>
+                  setUser({ ...user, phone_number: e.target.value })
+                }
               />
             </div>
 
@@ -90,40 +155,11 @@ const Profile = () => {
               <Label htmlFor="organization">Organization (Optional)</Label>
               <Input
                 id="organization"
-                placeholder="Your company name"
+                value={user.organization || ""}
+                onChange={(e) =>
+                  setUser({ ...user, organization: e.target.value })
+                }
               />
-            </div>
-
-            <div className="pt-4 border-t border-border">
-              <h3 className="font-semibold mb-4">Change Password</h3>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <Input
-                    id="currentPassword"
-                    type="password"
-                    placeholder="••••••••"
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <Input
-                      id="newPassword"
-                      type="password"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                </div>
-              </div>
             </div>
 
             <div className="flex gap-3 pt-4">
@@ -141,9 +177,9 @@ const Profile = () => {
           </form>
         </Card>
 
-        {/* Preferences Card */}
         <Card className="p-6 rounded-2xl shadow-lg">
           <h3 className="font-semibold mb-4">Preferences</h3>
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -156,16 +192,13 @@ const Profile = () => {
                 Configure
               </Button>
             </div>
+
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Currency</p>
-                <p className="text-sm text-muted-foreground">
-                  Indian Rupee (₹)
-                </p>
+                <p className="text-sm text-muted-foreground">Indian Rupee (₹)</p>
               </div>
-              <Button variant="outline" size="sm">
-                Change
-              </Button>
+              <Button variant="outline" size="sm">Change</Button>
             </div>
           </div>
         </Card>
