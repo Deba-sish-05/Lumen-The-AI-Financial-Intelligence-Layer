@@ -139,7 +139,6 @@ def gst_check_route():
         return jsonify({
             "success": False,
             "error": "Unexpected error",
-            "details": str(e)
         }), 500
 
 
