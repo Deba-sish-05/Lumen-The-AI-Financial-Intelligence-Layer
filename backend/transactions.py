@@ -10,12 +10,23 @@ transactions_bp = Blueprint("transactions", __name__, url_prefix="/transactions"
 def get_transactions():
     user_id = int(get_jwt_identity())
     page = int(request.args.get("page", 1))
+    category_filter = request.args.get("category", "").strip().lower()
 
-    query = Transaction.query.filter_by(user_id=user_id).order_by(Transaction.created_at.desc())
+    # Base query
+    query = Transaction.query.filter_by(user_id=user_id)
+
+    # Apply category filter ONLY if provided
+    if category_filter:
+        query = query.filter(Transaction.category == category_filter)
+
+    query = query.order_by(Transaction.created_at.desc())
+
     paginated = query.paginate(page=page, per_page=20, error_out=False)
 
-    transactions = [
-        {
+    transactions = []
+    for t in paginated.items:
+        doc = Document.query.filter_by(transaction_id=t.id).first()
+        transactions.append({
             "id": t.id,
             "item_name": t.item_name,
             "amount": t.amount,
@@ -26,22 +37,18 @@ def get_transactions():
             "description": t.description,
             "tags": t.tags,
             "created_at": t.created_at.isoformat(),
-            "file_url": (
-            Document.query.filter_by(transaction_id=t.id).first().file_url
-            if Document.query.filter_by(transaction_id=t.id).first() else None),
-            "status":(
-            Document.query.filter_by(transaction_id=t.id).first().status
-            if Document.query.filter_by(transaction_id=t.id).first() else "verified")
-        }
-        for t in paginated.items
-    ]
-    
+            "file_url": doc.file_url if doc else None,
+            "status": doc.status if doc else "verified"
+        })
+
     return jsonify({
         "transactions": transactions,
         "page": paginated.page,
         "total_pages": paginated.pages,
         "total": paginated.total,
+        "category_filter": category_filter or None,
     }), 200
+
 
 @transactions_bp.post("/add")
 @jwt_required()
