@@ -100,13 +100,10 @@ const GSTChecker: React.FC = () => {
   const [gstNumber, setGstNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [gstData, setGstData] = useState<GSTData | null>(null);
-  const [rawPayload, setRawPayload] = useState<any>(null);
-  const [showDebug, setShowDebug] = useState(true);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setGstData(null);
-    setRawPayload(null);
 
     const gst = (gstNumber || "").trim().toUpperCase();
     if (gst.length !== 15) {
@@ -135,8 +132,6 @@ const GSTChecker: React.FC = () => {
       }
 
       const payload = await resp.json();
-      setRawPayload(payload);
-      console.log("DEBUG raw payload ->", payload);
 
       if (!payload || payload.success === false) {
         const err = (payload && (payload as any).error) || "Invalid GSTIN was given";
@@ -248,20 +243,6 @@ const GSTChecker: React.FC = () => {
               <li>• Check GST status before business transactions</li>
               <li>• Ensure compliance and reduce fraud risk</li>
             </ul>
-          </Card>
-        )}
-
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground"><Code className="h-4 w-4" /><span>Debug options</span></div>
-          <div><Button size="sm" variant="ghost" onClick={() => setShowDebug((s) => !s)} className="text-xs">{showDebug ? "Hide Debug" : "Show Debug"}</Button></div>
-        </div>
-
-        {showDebug && rawPayload && (
-          <Card className="p-4 rounded-md bg-[#0f1724]/5">
-            <div style={{ fontSize: 12, maxHeight: 360, overflow: "auto", whiteSpace: "pre-wrap" }}>
-              <strong>Raw backend response:</strong>
-              <pre style={{ fontSize: 11, marginTop: 8 }}>{JSON.stringify(rawPayload, null, 2)}</pre>
-            </div>
           </Card>
         )}
       </div>
