@@ -12,6 +12,7 @@ import GSTChecker from "./pages/GSTChecker";
 import ITRFiling from "./pages/ITRFiling";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -22,15 +23,68 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Public Route */}
           <Route path="/" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/bills" element={<Bills />} />
-          <Route path="/add-bill" element={<AddBill />} />
-          <Route path="/add-transaction" element={<AddTransaction />} />
-          <Route path="/gst-checker" element={<GSTChecker />} />
-          <Route path="/itr-filing" element={<ITRFiling />} />
-          <Route path="/profile" element={<Profile />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+          {/* Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bills"
+            element={
+              <ProtectedRoute>
+                <Bills />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-bill"
+            element={
+              <ProtectedRoute>
+                <AddBill />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-transaction"
+            element={
+              <ProtectedRoute>
+                <AddTransaction />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/gst-checker"
+            element={
+              <ProtectedRoute>
+                <GSTChecker />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/itr-filing"
+            element={
+              <ProtectedRoute>
+                <ITRFiling />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Catch-All */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

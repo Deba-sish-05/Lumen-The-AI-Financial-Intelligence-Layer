@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import api from "@/lib/api";
 
 const AddBill = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -18,22 +19,45 @@ const AddBill = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!selectedFile) {
-      toast.error("Please select a file to upload");
-      return;
-    }
+  e.preventDefault();
 
-    setIsProcessing(true);
-    
-    // TODO: Implement actual file upload and LLM processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      toast.success("Bill uploaded successfully! AI is processing your document.");
-      setSelectedFile(null);
-    }, 2000);
-  };
+  if (!selectedFile) {
+    toast.error("Please select a file to upload");
+    return;
+  }
+
+  const vendor = (document.getElementById("vendor") as HTMLInputElement).value;
+  const category = (document.getElementById("category") as HTMLInputElement).value;
+  const notes = (document.getElementById("notes") as HTMLInputElement).value;
+
+  setIsProcessing(true);
+
+  try {
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("vendor", vendor);
+    formData.append("category", category);
+    formData.append("notes", notes);
+
+    await api.post("/bills/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    toast.success("Bill uploaded successfully! AI is processing your document.");
+
+    // Reset
+    setSelectedFile(null);
+    (e.target as HTMLFormElement).reset();
+
+  } catch (error: any) {
+    toast.error(error?.response?.data?.message || "Failed to upload bill");
+  }
+
+  setIsProcessing(false);
+};
+
 
   return (
     <DashboardLayout>

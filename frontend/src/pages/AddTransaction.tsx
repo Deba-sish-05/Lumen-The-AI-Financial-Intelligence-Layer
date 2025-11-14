@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import api from "@/lib/api";
 import {
   Select,
   SelectContent,
@@ -25,15 +26,50 @@ const AddTransaction = () => {
   const [date, setDate] = useState<Date>();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    // TODO: Implement actual transaction creation
+  e.preventDefault();
+
+  if (!date) {
+    toast.error("Please pick a transaction date");
+    return;
+  }
+
+  const item_name = (document.getElementById("item") as HTMLInputElement).value;
+  const amount = Number((document.getElementById("amount") as HTMLInputElement).value);
+
+  const category = (document.querySelector("[id='category']") as HTMLSelectElement)?.value ||
+                   (document.querySelector("[data-category]") as HTMLElement)?.getAttribute("data-value");
+
+  const payment_mode = (document.querySelector("[id='mode']") as HTMLSelectElement)?.value ||
+                       (document.querySelector("[data-mode]") as HTMLElement)?.getAttribute("data-value");
+
+  const vendor = (document.getElementById("vendor") as HTMLInputElement).value;
+  const description = (document.getElementById("description") as HTMLInputElement).value;
+  const tags = (document.getElementById("tags") as HTMLInputElement).value;
+
+  const payload = {
+    item_name,
+    amount,
+    category,
+    payment_mode,
+    vendor,
+    description,
+    tags,
+    transaction_date: date.toISOString().split("T")[0],
+  };
+
+  try {
+    await api.post("/transactions/add", payload);
+
     toast.success("Transaction added successfully!");
-    
+
     // Reset form
     (e.target as HTMLFormElement).reset();
     setDate(undefined);
-  };
+
+  } catch (error: any) {
+    toast.error(error?.response?.data?.message || "Failed to add transaction");
+  }
+};
 
   return (
     <DashboardLayout>

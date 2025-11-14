@@ -5,27 +5,64 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import api from "@/lib/api";
 
 const Auth = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
+  // -------------------------
+  // LOGIN HANDLER
+  // -------------------------
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: Implement actual authentication
-    setTimeout(() => {
+
+    const email = (document.getElementById("email") as HTMLInputElement).value;
+    const password = (document.getElementById("password") as HTMLInputElement).value;
+
+    try {
+      const res = await api.post("/auth/login", { email, password });
+
+      // Store JWT
+      localStorage.setItem("access_token", res.data.access);
+
       navigate("/dashboard");
-    }, 1000);
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Login failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // -------------------------
+  // SIGNUP HANDLER
+  // -------------------------
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: Implement actual signup
-    setTimeout(() => {
-      navigate("/dashboard");
-    }, 1000);
+
+    const first_name = (document.getElementById("signup-first-name") as HTMLInputElement).value.trim();
+    const last_name = (document.getElementById("signup-last-name") as HTMLInputElement).value.trim();
+    const email = (document.getElementById("signup-email") as HTMLInputElement).value.trim();
+    const phone = (document.getElementById("signup-phone") as HTMLInputElement).value.trim();
+    const password = (document.getElementById("signup-password") as HTMLInputElement).value.trim();
+
+    try {
+      await api.post("/auth/signup", {
+        first_name,
+        last_name,
+        email,
+        phone_number: phone,
+        password,
+      });
+
+      alert("Signup successful! Please login.");
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Signup failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -33,11 +70,11 @@ const Auth = () => {
       <Card className="w-full max-w-md p-8 shadow-2xl">
         <div className="text-center mb-8">
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-info-blue mb-4">
-          <img
-            src="/favicon.ico"
-            alt="Logo"
-            className="h-16 w-16 object-cover rounded-2xl"
-          />
+            <img
+              src="/favicon.ico"
+              alt="Logo"
+              className="h-16 w-16 object-cover rounded-2xl"
+            />
           </div>
           <h1 className="text-3xl font-bold mb-2">Project LUMEN</h1>
           <p className="text-muted-foreground">
@@ -51,6 +88,7 @@ const Auth = () => {
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
 
+          {/* ---------------- LOGIN TAB ---------------- */}
           <TabsContent value="login">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
@@ -62,6 +100,7 @@ const Auth = () => {
                   required
                 />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
@@ -71,8 +110,9 @@ const Auth = () => {
                   required
                 />
               </div>
-              <Button 
-                type="submit" 
+
+              <Button
+                type="submit"
                 className="w-full bg-gradient-to-r from-primary to-info-blue hover:opacity-90"
                 disabled={isLoading}
               >
@@ -81,17 +121,33 @@ const Auth = () => {
             </form>
           </TabsContent>
 
+          {/* ---------------- SIGNUP TAB ---------------- */}
           <TabsContent value="signup">
             <form onSubmit={handleSignup} className="space-y-4">
+
+              {/* First Name */}
               <div className="space-y-2">
-                <Label htmlFor="signup-name">Full Name</Label>
+                <Label htmlFor="signup-first-name">First Name</Label>
                 <Input
-                  id="signup-name"
+                  id="signup-first-name"
                   type="text"
-                  placeholder="John Doe"
+                  placeholder="John"
                   required
                 />
               </div>
+
+              {/* Last Name */}
+              <div className="space-y-2">
+                <Label htmlFor="signup-last-name">Last Name</Label>
+                <Input
+                  id="signup-last-name"
+                  type="text"
+                  placeholder="Doe"
+                  required
+                />
+              </div>
+
+              {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="signup-email">Email</Label>
                 <Input
@@ -101,6 +157,8 @@ const Auth = () => {
                   required
                 />
               </div>
+
+              {/* Phone */}
               <div className="space-y-2">
                 <Label htmlFor="signup-phone">Phone Number</Label>
                 <Input
@@ -110,6 +168,8 @@ const Auth = () => {
                   required
                 />
               </div>
+
+              {/* Password */}
               <div className="space-y-2">
                 <Label htmlFor="signup-password">Password</Label>
                 <Input
@@ -119,8 +179,9 @@ const Auth = () => {
                   required
                 />
               </div>
-              <Button 
-                type="submit" 
+
+              <Button
+                type="submit"
                 className="w-full bg-gradient-to-r from-teal to-success-green hover:opacity-90"
                 disabled={isLoading}
               >
