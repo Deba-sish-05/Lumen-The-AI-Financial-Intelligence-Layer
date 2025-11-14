@@ -328,7 +328,45 @@ const Bills = () => {
         >
           Next
         </Button>
+        
       </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+  <Card className="p-6 rounded-2xl shadow-lg bg-green-100 border-green-200">
+    <div className="flex items-center gap-3">
+      <CheckCircle2 className="h-8 w-8 text-green-600" />
+      <div>
+        <p className="text-2xl font-bold">
+          {transactions.filter(t => t.status === "verified").length}
+        </p>
+        <p className="text-sm text-muted-foreground">Verified Bills</p>
+      </div>
+    </div>
+  </Card>
+
+  <Card className="p-6 rounded-2xl shadow-lg bg-yellow-100 border-yellow-200">
+    <div className="flex items-center gap-3">
+      <FileCheck className="h-8 w-8 text-yellow-600" />
+      <div>
+        <p className="text-2xl font-bold">
+          {transactions.filter(t => t.status === "pending").length}
+        </p>
+        <p className="text-sm text-muted-foreground">Pending Review</p>
+      </div>
+    </div>
+  </Card>
+
+  <Card className="p-6 rounded-2xl shadow-lg bg-red-100 border-red-200">
+    <div className="flex items-center gap-3">
+      <AlertTriangle className="h-8 w-8 text-red-600" />
+      <div>
+        <p className="text-2xl font-bold">
+          {transactions.filter(t => t.status === "rejected").length}
+        </p>
+        <p className="text-sm text-muted-foreground">Suspicious</p>
+      </div>
+    </div>
+  </Card>
+</div>
     </DashboardLayout>
   );
 };
