@@ -22,3 +22,6 @@ dist-ssr
 *.sw?
 .venv
 *.db
+__pycache__
+.env
+documents/

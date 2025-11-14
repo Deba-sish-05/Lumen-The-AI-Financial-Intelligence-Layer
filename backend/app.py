@@ -11,6 +11,8 @@ import requests
 import json
 import re
 from dotenv import load_dotenv
+from transactions import transactions_bp
+from document import document_bp
 
 load_dotenv()
 
@@ -30,6 +32,8 @@ db.init_app(app)
 JWTManager(app)
 
 app.register_blueprint(auth_bp)
+app.register_blueprint(transactions_bp)
+app.register_blueprint(document_bp)
 
 # @app.route('/api/analytics')
 # def analytics():
