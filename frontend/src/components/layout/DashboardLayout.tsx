@@ -106,9 +106,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 Your financial insights powered by LUMEN AI
               </p>
             </div>
-
-            {/* 🔥 UPDATED AVATAR */}
-            <Avatar
+            <Avatar 
               className="cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate("/profile")}
             >
