@@ -47,17 +47,15 @@ def add_transaction():
     data = request.get_json() or {}
 
     required_fields = ["item_name", "amount", "category", "payment_mode", "transaction_date"]
-
-    # validate required fields
     if not all(field in data and data[field] for field in required_fields):
         return jsonify({"error": "Missing required fields"}), 400
-
-    # parse date
     try:
         transaction_date = datetime.fromisoformat(data["transaction_date"]).date()
     except Exception:
         return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
-
+    today = datetime.utcnow().date()
+    if transaction_date > today:
+        return jsonify({"error": "Transaction date cannot be in the future"}), 400
     t = Transaction(
         user_id=user_id,
         item_name=data["item_name"],
