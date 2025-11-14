@@ -185,7 +185,8 @@ const ITRFiling = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl">
+        <div className="w-full flex justify-center">
+      <div className="max-w-4xl w-full">
         <div className="flex items-center gap-3 mb-6">
           <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-info-blue flex items-center justify-center">
             <FileText className="h-6 w-6 text-white" />
@@ -319,6 +320,7 @@ const ITRFiling = () => {
             )}
           </CardContent>
         </Card>
+      </div>
       </div>
     </DashboardLayout>
   );

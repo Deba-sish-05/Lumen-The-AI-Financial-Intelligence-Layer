@@ -14,6 +14,8 @@ from dotenv import load_dotenv
 from transactions import transactions_bp
 from document import document_bp
 from gst_check import lookup_gstin_using_keys, api_keys, AllKeysExhausted
+from flask import send_from_directory
+
 
 load_dotenv()
 
@@ -124,7 +126,11 @@ def generate_itr():
     # except Exception as e:
     #     print("ITR generation error:", e)
     #     return jsonify({"error": "Failed to generate PDF"}), 500
-    
+
+@app.get("/documents/<filename>")
+def download_file(filename):
+    return send_from_directory("documents", filename, as_attachment=True)
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
