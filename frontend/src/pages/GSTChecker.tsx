@@ -8,9 +8,7 @@ import { Search, Building2, Loader2 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 
-/* -------------------------------------------------------------
-   UTIL: Safe getter (hyphen, snake, camel, dot-notation)
-------------------------------------------------------------- */
+
 const pick = (obj: any, keys: string[], fallback = "N/A") => {
   if (!obj) return fallback;
 
@@ -31,9 +29,7 @@ const pick = (obj: any, keys: string[], fallback = "N/A") => {
   return fallback;
 };
 
-/* -------------------------------------------------------------
-   UTIL: Address formatter
-------------------------------------------------------------- */
+
 const fmtAddress = (a: any) => {
   if (!a || typeof a !== "object") return "N/A";
 
@@ -49,9 +45,7 @@ const fmtAddress = (a: any) => {
     .join(", ");
 };
 
-/* -------------------------------------------------------------
-   UTIL: Date formatter
-------------------------------------------------------------- */
+
 const fmtDate = (raw: string) => {
   if (!raw) return "Invalid Date";
 
@@ -66,9 +60,6 @@ const fmtDate = (raw: string) => {
   return raw;
 };
 
-/* -------------------------------------------------------------
-   MAIN COMPONENT
-------------------------------------------------------------- */
 const GSTChecker = () => {
   const [gstin, setGstin] = useState("");
   const [loading, setLoading] = useState(false);
@@ -95,7 +86,6 @@ const GSTChecker = () => {
         return;
       }
 
-      // Pick the deepest valid object
       const raw =
         p.data ||
         p.raw_wrapper?.result ||
@@ -147,7 +137,6 @@ const GSTChecker = () => {
           <p className="text-muted-foreground">Verify any GST-registered business instantly</p>
         </div>
 
-        {/* Search Box */}
         <Card className="p-8 rounded-2xl shadow-lg">
           <form onSubmit={handleSearch} className="space-y-3">
             <Label>GST Number</Label>
@@ -178,7 +167,6 @@ const GSTChecker = () => {
           </form>
         </Card>
 
-        {/* Result */}
         {info && (
           <Card className="p-8 rounded-2xl shadow-lg">
             
