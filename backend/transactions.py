@@ -1,21 +1,18 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from model import db, Transaction
+from model import db, Transaction,Document
 from datetime import datetime
 
 transactions_bp = Blueprint("transactions", __name__, url_prefix="/transactions")
 
-@transactions_bp.get("/")
+@transactions_bp.get("/all")
 @jwt_required()
 def get_transactions():
     user_id = int(get_jwt_identity())
-
-    # Optional pagination
     page = int(request.args.get("page", 1))
-    limit = int(request.args.get("limit", 20))
 
     query = Transaction.query.filter_by(user_id=user_id).order_by(Transaction.created_at.desc())
-    paginated = query.paginate(page=page, per_page=limit, error_out=False)
+    paginated = query.paginate(page=page, per_page=20, error_out=False)
 
     transactions = [
         {
@@ -29,10 +26,16 @@ def get_transactions():
             "description": t.description,
             "tags": t.tags,
             "created_at": t.created_at.isoformat(),
+            "file_url": (
+            Document.query.filter_by(transaction_id=t.id).first().file_url
+            if Document.query.filter_by(transaction_id=t.id).first() else None),
+            "status":(
+            Document.query.filter_by(transaction_id=t.id).first().status
+            if Document.query.filter_by(transaction_id=t.id).first() else "verified")
         }
         for t in paginated.items
     ]
-
+    
     return jsonify({
         "transactions": transactions,
         "page": paginated.page,
