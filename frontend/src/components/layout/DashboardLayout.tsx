@@ -20,7 +20,7 @@ interface DashboardLayoutProps {
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Past Bills", href: "/bills", icon: Receipt },
+  { name: "Past Transactions", href: "/bills", icon: Receipt },
   { name: "Add Bill", href: "/add-bill", icon: Plus },
   { name: "Add Transaction", href: "/add-transaction", icon: CreditCard },
   { name: "GST Checker", href: "/gst-checker", icon: FileCheck },

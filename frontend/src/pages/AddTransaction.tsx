@@ -23,53 +23,60 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 const AddTransaction = () => {
+  const [itemName, setItemName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("");
+  const [paymentMode, setPaymentMode] = useState("");
+  const [vendor, setVendor] = useState("");
+  const [description, setDescription] = useState("");
+  const [tags, setTags] = useState("");
   const [date, setDate] = useState<Date>();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!date) {
-    toast.error("Please pick a transaction date");
-    return;
-  }
+    if (!date) {
+      toast.error("Please pick a transaction date");
+      return;
+    }
+    if (!category) {
+      toast.error("Please select a category");
+      return;
+    }
+    if (!paymentMode) {
+      toast.error("Please select a payment mode");
+      return;
+    }
 
-  const item_name = (document.getElementById("item") as HTMLInputElement).value;
-  const amount = Number((document.getElementById("amount") as HTMLInputElement).value);
+    const payload = {
+      item_name: itemName,
+      amount: Number(amount),
+      category,
+      payment_mode: paymentMode,
+      vendor,
+      description,
+      tags,
+      transaction_date: date.toISOString().split("T")[0],
+    };
 
-  const category = (document.querySelector("[id='category']") as HTMLSelectElement)?.value ||
-                   (document.querySelector("[data-category]") as HTMLElement)?.getAttribute("data-value");
+    try {
+      await api.post("/transactions/add", payload);
 
-  const payment_mode = (document.querySelector("[id='mode']") as HTMLSelectElement)?.value ||
-                       (document.querySelector("[data-mode]") as HTMLElement)?.getAttribute("data-value");
+      toast.success("Transaction added successfully!");
 
-  const vendor = (document.getElementById("vendor") as HTMLInputElement).value;
-  const description = (document.getElementById("description") as HTMLInputElement).value;
-  const tags = (document.getElementById("tags") as HTMLInputElement).value;
-
-  const payload = {
-    item_name,
-    amount,
-    category,
-    payment_mode,
-    vendor,
-    description,
-    tags,
-    transaction_date: date.toISOString().split("T")[0],
+      // Reset form
+      setItemName("");
+      setAmount("");
+      setCategory("");
+      setPaymentMode("");
+      setVendor("");
+      setDescription("");
+      setTags("");
+      setDate(undefined);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || "Failed to add transaction");
+    }
   };
-
-  try {
-    await api.post("/transactions/add", payload);
-
-    toast.success("Transaction added successfully!");
-
-    // Reset form
-    (e.target as HTMLFormElement).reset();
-    setDate(undefined);
-
-  } catch (error: any) {
-    toast.error(error?.response?.data?.message || "Failed to add transaction");
-  }
-};
 
   return (
     <DashboardLayout>
@@ -84,11 +91,13 @@ const AddTransaction = () => {
         <Card className="p-8 rounded-2xl shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
               {/* Item Name */}
               <div className="space-y-2">
-                <Label htmlFor="item">Item / Service Name *</Label>
+                <Label>Item / Service Name *</Label>
                 <Input
-                  id="item"
+                  value={itemName}
+                  onChange={(e) => setItemName(e.target.value)}
                   placeholder="e.g., Coffee, Groceries"
                   required
                 />
@@ -96,9 +105,10 @@ const AddTransaction = () => {
 
               {/* Amount */}
               <div className="space-y-2">
-                <Label htmlFor="amount">Amount (₹) *</Label>
+                <Label>Amount (₹) *</Label>
                 <Input
-                  id="amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
                   type="number"
                   step="0.01"
                   placeholder="0.00"
@@ -108,8 +118,8 @@ const AddTransaction = () => {
 
               {/* Category */}
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
-                <Select required>
+                <Label>Category *</Label>
+                <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -128,8 +138,8 @@ const AddTransaction = () => {
 
               {/* Payment Mode */}
               <div className="space-y-2">
-                <Label htmlFor="mode">Payment Mode *</Label>
-                <Select required>
+                <Label>Payment Mode *</Label>
+                <Select value={paymentMode} onValueChange={setPaymentMode}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select mode" />
                   </SelectTrigger>
@@ -145,9 +155,10 @@ const AddTransaction = () => {
 
               {/* Vendor */}
               <div className="space-y-2">
-                <Label htmlFor="vendor">Vendor / Merchant</Label>
+                <Label>Vendor / Merchant</Label>
                 <Input
-                  id="vendor"
+                  value={vendor}
+                  onChange={(e) => setVendor(e.target.value)}
                   placeholder="e.g., Southern Express Café"
                 />
               </div>
@@ -155,6 +166,7 @@ const AddTransaction = () => {
               {/* Date */}
               <div className="space-y-2">
                 <Label>Transaction Date *</Label>
+
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -175,22 +187,25 @@ const AddTransaction = () => {
                   </PopoverContent>
                 </Popover>
               </div>
+
             </div>
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description">Description (Optional)</Label>
+              <Label>Description (Optional)</Label>
               <Input
-                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Add notes or additional details..."
               />
             </div>
 
             {/* Tags */}
             <div className="space-y-2">
-              <Label htmlFor="tags">Tags (Optional)</Label>
+              <Label>Tags (Optional)</Label>
               <Input
-                id="tags"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
                 placeholder="e.g., business, personal, recurring"
               />
             </div>
