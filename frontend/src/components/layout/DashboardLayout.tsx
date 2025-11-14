@@ -33,12 +33,15 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <div className="flex min-h-screen bg-muted/30">
-      {/* Sidebar */}
       <aside className="w-64 bg-card border-r border-border fixed h-full">
         <div className="p-6">
           <div className="flex items-center gap-2 mb-8">
             <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-info-blue flex items-center justify-center">
-              <span className="text-white font-bold text-xl">L</span>
+            <img
+              src="/favicon.ico"
+              alt="Logo"
+              className="h-10 w-10 rounded-lg object-cover"
+            />
             </div>
             <div>
               <h2 className="font-bold text-lg">LUMEN</h2>
