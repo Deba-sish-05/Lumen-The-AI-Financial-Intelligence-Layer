@@ -11,13 +11,20 @@ import {
 } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
+// ✅ FIXED: Smooth, regular graph Feb → Dec
 const trendData = [
-  { month: "Jul", value: 8200 },
-  { month: "Feb", value: 9800 },
-  { month: "Mar", value: 11200 },
-  { month: "Apr", value: 10800 },
-  { month: "May", value: 11900 },
+  { month: "Jan", value: 5000 },
+  { month: "Feb", value: 8000 },
+  { month: "Mar", value: 9000 },
+  { month: "Apr", value: 10000 },
+  { month: "May", value: 11200 },
   { month: "Jun", value: 12470 },
+  { month: "Jul", value: 13400 },
+  { month: "Aug", value: 14200 },
+  { month: "Sep", value: 15000 },
+  { month: "Oct", value: 15900 },
+  { month: "Nov", value: 16800 },
+  { month: "Dec", value: 17800 },
 ];
 
 const categoryData = [
@@ -38,6 +45,7 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard
@@ -63,14 +71,15 @@ const Dashboard = () => {
 
         {/* Charts and Insights */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
           {/* Monthly Trend */}
           <Card className="lg:col-span-2 p-6 rounded-2xl shadow-lg">
             <h3 className="font-bold text-lg mb-4">Monthly Spending Trend</h3>
             <ChartContainer config={{}} className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trendData}>
-                  <XAxis 
-                    dataKey="month" 
+                  <XAxis
+                    dataKey="month"
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
                   />
@@ -190,6 +199,7 @@ const Dashboard = () => {
             colorScheme="teal"
           />
         </div>
+
       </div>
     </DashboardLayout>
   );
