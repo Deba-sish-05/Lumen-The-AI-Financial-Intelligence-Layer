@@ -3,6 +3,7 @@ import datetime
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from model import db, User, Transaction, Document
 from sqlalchemy import func
 from auth import auth_bp
@@ -13,6 +14,7 @@ import re
 from dotenv import load_dotenv
 from transactions import transactions_bp
 from document import document_bp
+from gst_check import lookup_gstin_using_keys, api_keys, AllKeysExhausted
 
 load_dotenv()
 
@@ -117,6 +119,28 @@ app.register_blueprint(document_bp)
 #     }
 
 #     return jsonify({'totals': totals, 'series': series})
+
+@app.post("/gst/check")
+@jwt_required()
+def gst_check_route():
+    user_id = int(get_jwt_identity())
+
+    data = request.get_json() or {}
+    gstin = data.get("gstin")
+
+    try:
+        result = lookup_gstin_using_keys(api_keys, gstin)
+        return jsonify({
+            "success": True,
+            "used_key": result["used_key_label"],
+            "data": result["result"]
+        }), 200
+    except:
+        return jsonify({
+            "success": False,
+            "error": "Unexpected error",
+        }), 500
+
 
 if __name__ == "__main__":
     with app.app_context():
