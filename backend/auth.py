@@ -9,78 +9,108 @@ from model import db, User, Transaction, Document
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 def _claims(user):
-    return {"role": user.role, "email": user.email, "name": user.full_name}
-
+    return {
+        "email": user.email,
+        "name": f"{user.first_name} {user.last_name}"
+    }
 
 @auth_bp.post("/signup")
 def signup():
     data = request.get_json() or {}
-    name, email, pwd = data.get("full_name"), data.get("email"), data.get("password")
-    role = (data.get("role") or "student").lower()
-    roomNo = (data.get("roomNo") or "")
-    print(roomNo)
-    if not name or not email or not pwd:
-        return jsonify({"error": "Missing fields"}), 400
+
+    first = data.get("first_name")
+    last = data.get("last_name")
+    email = data.get("email")
+    phone = data.get("phone_number")
+    pwd = data.get("password")
+
+    if not all([first, last, email, phone, pwd]):
+        return jsonify({"error": "Missing required fields"}), 400
+
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "Email already registered"}), 409
-    if role not in ("student",):
-        return jsonify({"error": "Invalid role"}), 400
-    user = User(full_name=name, email=email, password_hash=generate_password_hash(pwd), role=role,room_no=roomNo)
+
+    user = User(
+        first_name=first,
+        last_name=last,
+        email=email,
+        phone_number=phone,
+        password_hash=generate_password_hash(pwd),
+        organization=data.get("organization"),
+        aadhar_number=data.get("aadhar_number"),
+        pan_number=data.get("pan_number"),
+        date_of_birth=data.get("date_of_birth"),
+        employment_type=data.get("employment_type"),
+        annual_salary=data.get("annual_salary"),
+        address=data.get("address"),
+    )
+
     db.session.add(user)
     db.session.commit()
+
     return jsonify({"message": "Account created"}), 201
 
 @auth_bp.post("/login")
 def login():
     data = request.get_json() or {}
     email, pwd = data.get("email"), data.get("password")
+
     user = User.query.filter_by(email=email).first()
     if not user or not check_password_hash(user.password_hash, pwd):
         return jsonify({"error": "Invalid credentials"}), 401
 
     access = create_access_token(identity=str(user.id), additional_claims=_claims(user))
     refresh = create_refresh_token(identity=str(user.id), additional_claims=_claims(user))
+
     return jsonify({"access": access, "refresh": refresh})
+
 
 @auth_bp.get("/me")
 @jwt_required()
 def me():
     user = User.query.get(int(get_jwt_identity()))
+    if not user:
+        return jsonify({"error": "User not found"}), 404
     return jsonify({
         "id": user.id,
-        "name": user.full_name,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
         "email": user.email,
-        "role": user.role,
-        "roomNo":user.room_no
+        "phone_number": user.phone_number,
+        "organization": user.organization,
+        "aadhar_number": user.aadhar_number,
+        "pan_number": user.pan_number,
+        "date_of_birth": user.date_of_birth,
+        "employment_type": user.employment_type,
+        "annual_salary": user.annual_salary,
+        "address": user.address,
     })
 
-@auth_bp.route("/update-profile", methods=["PUT"])
+
+@auth_bp.put("/update-profile")
 @jwt_required()
 def update_profile():
     user_id = int(get_jwt_identity())
-    data = request.get_json(silent=True) or {}
-    if not data:
-        return jsonify({"msg": "Missing JSON body"}), 400
-    name = data.get("name") or data.get("full_name")
-    email = data.get("email")
-    room_no = data.get("roomNo") or data.get("room_no") or data.get("roomNo".lower())
     user = User.query.get(user_id)
     if not user:
-        return jsonify({"msg": "User not found"}), 404
-    if name:
-        if hasattr(user, "full_name"):
-            user.full_name = name
-        else:
-            user.name = name
-    if email:
-        existing = User.query.filter(User.email == email, User.id != user_id).first()
+        return jsonify({"error": "User not found"}), 404
+
+    data = request.get_json() or {}
+
+    for field in [
+        "first_name", "last_name", "phone_number", "organization",
+        "aadhar_number", "pan_number", "date_of_birth", "employment_type",
+        "annual_salary", "address"
+    ]:
+        if field in data and data[field] is not None:
+            setattr(user, field, data[field])
+
+    new_email = data.get("email")
+    if new_email:
+        existing = User.query.filter(User.email == new_email, User.id != user_id).first()
         if existing:
-            return jsonify({"msg": "Email already in use"}), 400
-        user.email = email
-    if room_no is not None:
-        if hasattr(user, "room_no"):
-            user.room_no = room_no
-        else:
-            setattr(user, "roomNo", room_no)
+            return jsonify({"error": "Email already in use"}), 400
+        user.email = new_email
+
     db.session.commit()
-    return jsonify({"msg": "Profile updated"}), 200
+    return jsonify({"message": "Profile updated"}), 200
