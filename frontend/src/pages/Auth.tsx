@@ -33,7 +33,11 @@ const Auth = () => {
       <Card className="w-full max-w-md p-8 shadow-2xl">
         <div className="text-center mb-8">
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-info-blue mb-4">
-            <span className="text-white font-bold text-3xl">L</span>
+          <img
+            src="/favicon.ico"
+            alt="Logo"
+            className="h-16 w-16 object-cover rounded-2xl"
+          />
           </div>
           <h1 className="text-3xl font-bold mb-2">Project LUMEN</h1>
           <p className="text-muted-foreground">
