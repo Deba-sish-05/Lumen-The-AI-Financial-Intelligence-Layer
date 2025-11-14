@@ -5,28 +5,57 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import api from "@/lib/api";
+
 
 const Auth = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    // TODO: Implement actual authentication
-    setTimeout(() => {
-      navigate("/dashboard");
-    }, 1000);
-  };
+  e.preventDefault();
+  setIsLoading(true);
+
+  const email = (document.getElementById("email") as HTMLInputElement).value;
+  const password = (document.getElementById("password") as HTMLInputElement).value;
+
+  try {
+    const res = await api.post("/auth/login", { email, password });
+    localStorage.setItem("access_token", res.data.access_token);
+
+    navigate("/dashboard");
+  } catch (err: any) {
+    alert(err.response?.data?.message || "Login failed");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    // TODO: Implement actual signup
-    setTimeout(() => {
-      navigate("/dashboard");
-    }, 1000);
-  };
+  e.preventDefault();
+  setIsLoading(true);
+
+  const name = (document.getElementById("signup-name") as HTMLInputElement).value;
+  const email = (document.getElementById("signup-email") as HTMLInputElement).value;
+  const phone = (document.getElementById("signup-phone") as HTMLInputElement).value;
+  const password = (document.getElementById("signup-password") as HTMLInputElement).value;
+
+  try {
+    const res = await api.post("/auth/signup", {
+      name,
+      email,
+      phone_number: phone,
+      password,
+    });
+
+    alert("Signup successful, please login.");
+  } catch (err: any) {
+    alert(err.response?.data?.message || "Signup failed");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-info-blue to-insight-purple p-4">

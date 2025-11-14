@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,47 +7,22 @@ import { Badge } from "@/components/ui/badge";
 import { Download, FileCheck, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const billsData = [
-  {
-    id: 1,
-    date: "2024-11-14",
-    vendor: "Southern Express Café",
-    amount: 787.5,
-    category: "Food",
-    legitimacy: "verified",
-    documentUrl: "#",
-  },
-  {
-    id: 2,
-    date: "2024-11-13",
-    vendor: "Metro Supermarket",
-    amount: 1250.0,
-    category: "Groceries",
-    legitimacy: "verified",
-    documentUrl: "#",
-  },
-  {
-    id: 3,
-    date: "2024-11-12",
-    vendor: "City Electricals",
-    amount: 1100.0,
-    category: "Bills",
-    legitimacy: "pending",
-    documentUrl: "#",
-  },
-  {
-    id: 4,
-    date: "2024-11-10",
-    vendor: "Unknown Vendor",
-    amount: 450.0,
-    category: "Other",
-    legitimacy: "suspicious",
-    documentUrl: "#",
-  },
-];
-
 const Bills = () => {
   const navigate = useNavigate();
+  const [billsData, setBillsData] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchBills = async () => {
+      try {
+        const res = await api.get("/bills/all");
+        setBillsData(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchBills();
+  }, []);
 
   return (
     <DashboardLayout>
@@ -57,7 +34,7 @@ const Bills = () => {
               View and manage your uploaded financial documents
             </p>
           </div>
-          <Button 
+          <Button
             className="bg-gradient-to-r from-primary to-info-blue"
             onClick={() => navigate("/add-bill")}
           >
@@ -79,7 +56,7 @@ const Bills = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {billsData.map((bill) => (
+                {billsData.map((bill: any) => (
                   <tr key={bill.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4 text-sm">
                       {new Date(bill.date).toLocaleDateString("en-IN", {
@@ -93,7 +70,7 @@ const Bills = () => {
                       <Badge variant="outline">{bill.category}</Badge>
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold">
-                      ₹{bill.amount.toFixed(2)}
+                      ₹{Number(bill.amount).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       {bill.legitimacy === "verified" && (
@@ -121,8 +98,7 @@ const Bills = () => {
                         size="sm"
                         className="gap-2"
                         onClick={() => {
-                          // TODO: Implement download
-                          console.log("Download", bill.id);
+                          window.open(bill.documentUrl, "_blank");
                         }}
                       >
                         <Download className="h-4 w-4" />
@@ -138,6 +114,7 @@ const Bills = () => {
 
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* UI unchanged */}
           <Card className="p-6 rounded-2xl shadow-lg bg-success-green/10 border-success-green/20">
             <div className="flex items-center gap-3">
               <CheckCircle2 className="h-8 w-8 text-success-green" />
@@ -147,6 +124,7 @@ const Bills = () => {
               </div>
             </div>
           </Card>
+
           <Card className="p-6 rounded-2xl shadow-lg bg-warning-orange/10 border-warning-orange/20">
             <div className="flex items-center gap-3">
               <FileCheck className="h-8 w-8 text-warning-orange" />
@@ -156,6 +134,7 @@ const Bills = () => {
               </div>
             </div>
           </Card>
+
           <Card className="p-6 rounded-2xl shadow-lg bg-destructive/10 border-destructive/20">
             <div className="flex items-center gap-3">
               <AlertTriangle className="h-8 w-8 text-destructive" />
