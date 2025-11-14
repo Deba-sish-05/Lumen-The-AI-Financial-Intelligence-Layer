@@ -142,6 +142,40 @@ def gst_check_route():
         }), 500
 
 
+@app.post("/gst/check_public")
+def gst_check_public():
+    """
+    Public endpoint (no JWT required) for frontend demo.
+    It uses lookup_gstin_using_keys from gst_check.py and returns:
+      { success: True, data: <result> } on success
+      { success: False, error: "Invalid GSTIN was given" } if lookup fails
+    """
+    data = request.get_json() or {}
+    gstin = (data.get("gstin") or "").strip()
+    if not gstin:
+        return jsonify({"success": False, "error": "Please provide a GSTIN"}), 400
+
+    try:
+        result = lookup_gstin_using_keys(api_keys, gstin)
+        # include used key and full wrapper so frontend can inspect actual payload
+        resp_payload = {
+            "success": True,
+            "data": result.get("result", {}),
+            "meta": {
+                "used_key_index": result.get("used_key_index"),
+                "used_key_label": result.get("used_key_label"),
+            },
+            "raw_wrapper": result,   # full wrapper including used_key info and full payload
+        }
+        return jsonify(resp_payload), 200
+    except AllKeysExhausted:
+        # If keys exhausted or service reports not found, return friendly error
+        return jsonify({"success": False, "error": "Invalid GSTIN was given"}), 200
+    except Exception as e:
+        # fallback generic error, useful for debugging
+        return jsonify({"success": False, "error": f"Unexpected error: {str(e)}"}), 500
+
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
