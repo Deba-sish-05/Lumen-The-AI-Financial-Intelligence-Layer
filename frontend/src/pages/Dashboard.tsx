@@ -74,28 +74,50 @@ const Dashboard = () => {
 
           {/* Monthly Trend */}
           <Card className="lg:col-span-2 p-6 rounded-2xl shadow-lg">
-            <h3 className="font-bold text-lg mb-4">Monthly Spending Trend</h3>
-            <ChartContainer config={{}} className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trendData}>
-                  <XAxis
-                    dataKey="month"
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                  />
-                  <YAxis hide />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="hsl(var(--info-blue))"
-                    strokeWidth={3}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </Card>
+  <h3 className="font-bold text-lg mb-4">Monthly Spending Trend</h3>
+
+  <ChartContainer config={{}} className="h-[320px] w-full p-0 m-0">
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart 
+        data={trendData} 
+        margin={{ top: 10, bottom: 20, left: 0, right: 0 }}
+      >
+        <XAxis
+          dataKey="month"
+          stroke="hsl(var(--muted-foreground))"
+          fontSize={12}
+          tickMargin={10}
+        />
+
+        <YAxis
+          stroke="transparent"
+          tickLine={false}
+          axisLine={false}
+        />
+
+        <ChartTooltip content={<ChartTooltipContent />} />
+
+        <defs>
+          <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="hsl(var(--info-blue))" stopOpacity={0.35} />
+            <stop offset="100%" stopColor="hsl(var(--info-blue))" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+
+        <Line
+          type="natural"
+          dataKey="value"
+          stroke="hsl(var(--info-blue))"
+          strokeWidth={3}
+          dot={false}
+          fill="url(#trendGradient)"
+          animationDuration={700}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  </ChartContainer>
+</Card>
+
 
           {/* Category Breakdown */}
           <Card className="p-6 rounded-2xl shadow-lg">
