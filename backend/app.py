@@ -59,6 +59,34 @@ def gst_check():
     except:
         return jsonify({"success": False, "error": "Invalid GSTIN was given"}), 200
 
+@app.post("/itr/generate")
+@jwt_required()
+def generate_itr():
+    try:
+        data = request.get_json() or {}
+
+        form_data = data.get("form_data")
+        transactions = data.get("transactions")
+
+        if not form_data or not transactions:
+            return jsonify({"error": "form_data and transactions are required"}), 400
+
+        pdf_stream = generate_itr_pdf(
+            form_data=form_data,
+            transactions=transactions,
+            template_path="ITR_TEMPLATE.pdf"
+        )
+
+        return send_file(
+            pdf_stream,
+            as_attachment=True,
+            download_name="ITR_Filled.pdf",
+            mimetype="application/pdf"
+        )
+
+    except:
+        return jsonify({"error": "Failed to generate PDF"}), 500
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()

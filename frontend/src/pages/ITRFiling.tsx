@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Edit2, Save } from "lucide-react";
+import { FileText, Edit2, Save, Download } from "lucide-react";
+import api from "@/lib/api";
 
 interface ITRDetails {
   aadharNumber: string;
@@ -22,7 +23,7 @@ const ITRFiling = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [hasDetails, setHasDetails] = useState(false);
   const { toast } = useToast();
-  
+
   const [formData, setFormData] = useState<ITRDetails>({
     aadharNumber: "",
     panNumber: "",
@@ -43,9 +44,12 @@ const ITRFiling = () => {
   }, []);
 
   const handleSave = () => {
-    // Basic validation
-    if (!formData.aadharNumber || !formData.panNumber || !formData.dateOfBirth || 
-        !formData.address || !formData.employmentType || !formData.annualSalary) {
+    if (!formData.aadharNumber ||
+        !formData.panNumber ||
+        !formData.dateOfBirth ||
+        !formData.address ||
+        !formData.employmentType ||
+        !formData.annualSalary) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -65,6 +69,49 @@ const ITRFiling = () => {
 
   const handleChange = (field: keyof ITRDetails, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const downloadITR = async () => {
+    try {
+      toast({ title: "Generating ITR PDF...", description: "Please wait." });
+
+      const tRes = await api.get("/transactions/all?page=1");
+      const transactions = tRes.data.transactions || [];
+
+      const res = await api.post(
+        "/itr/generate",
+        {
+          form_data: {
+            name: "User", 
+            dob: formData.dateOfBirth,
+            aadhaar: formData.aadharNumber,
+            pan: formData.panNumber,
+            email: "user@example.com", 
+            mobile: "0000000000",  
+            employment: formData.employmentType,
+            salary: Number(formData.annualSalary),
+            address: formData.address,
+          },
+          transactions: transactions,
+        },
+        { responseType: "blob" }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ITR_Filled.pdf";
+      a.click();
+
+      toast({ title: "Download Ready", description: "Your ITR PDF is downloaded." });
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "Failed to generate ITR PDF",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -97,51 +144,49 @@ const ITRFiling = () => {
               )}
             </div>
           </CardHeader>
+
           <CardContent className="space-y-4">
+            {/* all your input fields stay same */}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="aadhar">Aadhar Number *</Label>
+                <Label>Aadhar Number *</Label>
                 <Input
-                  id="aadhar"
-                  placeholder="XXXX-XXXX-XXXX"
                   value={formData.aadharNumber}
                   onChange={(e) => handleChange("aadharNumber", e.target.value)}
                   disabled={!isEditing}
                   maxLength={12}
                 />
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="pan">PAN Number *</Label>
+                <Label>PAN Number *</Label>
                 <Input
-                  id="pan"
-                  placeholder="ABCDE1234F"
                   value={formData.panNumber}
                   onChange={(e) => handleChange("panNumber", e.target.value.toUpperCase())}
                   disabled={!isEditing}
                   maxLength={10}
                 />
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="dob">Date of Birth *</Label>
+                <Label>Date of Birth *</Label>
                 <Input
-                  id="dob"
                   type="date"
                   value={formData.dateOfBirth}
                   onChange={(e) => handleChange("dateOfBirth", e.target.value)}
                   disabled={!isEditing}
                 />
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="employment">Nature of Employment *</Label>
+                <Label>Nature of Employment *</Label>
                 <Select
                   value={formData.employmentType}
                   onValueChange={(value) => handleChange("employmentType", value)}
                   disabled={!isEditing}
                 >
-                  <SelectTrigger id="employment">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select employment type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -152,25 +197,21 @@ const ITRFiling = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="salary">Annual Salary (Past Year) *</Label>
+                <Label>Annual Salary *</Label>
                 <Input
-                  id="salary"
                   type="number"
-                  placeholder="₹ 0"
                   value={formData.annualSalary}
                   onChange={(e) => handleChange("annualSalary", e.target.value)}
                   disabled={!isEditing}
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="address">Address *</Label>
+              <Label>Address *</Label>
               <Textarea
-                id="address"
-                placeholder="Enter your complete address"
                 value={formData.address}
                 onChange={(e) => handleChange("address", e.target.value)}
                 disabled={!isEditing}
@@ -184,14 +225,15 @@ const ITRFiling = () => {
                   <Save className="h-4 w-4 mr-2" />
                   Save Details
                 </Button>
+
                 {hasDetails && (
-                  <Button 
+                  <Button
+                    variant="outline"
                     onClick={() => {
                       const saved = localStorage.getItem("itr_details");
                       if (saved) setFormData(JSON.parse(saved));
                       setIsEditing(false);
-                    }} 
-                    variant="outline"
+                    }}
                   >
                     Cancel
                   </Button>
@@ -200,12 +242,15 @@ const ITRFiling = () => {
             )}
 
             {!isEditing && hasDetails && (
-              <div className="pt-4 border-t">
-                <p className="text-sm text-muted-foreground">
-                  Your details are saved and ready for ITR filing. Click "Edit Details" to make changes.
-                </p>
-              </div>
+              <Button
+                className="mt-4 w-full bg-gradient-to-r from-primary to-info-blue"
+                onClick={downloadITR}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download Your ITR PDF
+              </Button>
             )}
+
           </CardContent>
         </Card>
       </div>
