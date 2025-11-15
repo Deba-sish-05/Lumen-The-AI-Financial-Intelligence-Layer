@@ -242,23 +242,23 @@ const Dashboard = () => {
       : "Your food spending pattern looks normal this week.";
   }
 
-  function fuelAnomalyDescription() {
-    const fuelTxns = transactions
-      .filter((t) => t.category === "fuel")
+  function billsAnomalyDescription() {
+    const billsTxns = transactions
+      .filter((t) => t.category === "bills")
       .map((t) => Number(t.amount));
 
-    if (fuelTxns.length < 3) return "Not enough data to analyze fuel spending.";
+    if (billsTxns.length < 3) return "Not enough data to analyze bills spending.";
 
-    const sorted = [...fuelTxns].sort((a, b) => a - b);
+    const sorted = [...billsTxns].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
     const median =
       sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
 
-    const latest = fuelTxns[fuelTxns.length - 1];
+    const latest = billsTxns[billsTxns.length - 1];
 
     return latest > median * 1.4
-      ? "Fuel bill above your usual pattern."
-      : "Fuel spending is normal compared to your historical average.";
+      ? "bills bill above your usual pattern."
+      : "bills spending is normal compared to your historical average.";
   }
 
   function groceryCycleDescription() {
@@ -470,8 +470,8 @@ const Dashboard = () => {
 
           <AlertCard
             icon={Fuel}
-            title="Fuel Anomaly"
-            description={fuelAnomalyDescription()}
+            title="Bills Anomaly"
+            description={billsAnomalyDescription()}
             colorScheme="info-blue"
           />
 
