@@ -1,4 +1,3 @@
-// Bills.tsx
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -23,9 +22,8 @@ const Bills = () => {
 
   const fetchTransactions = async (pageNum: number, cat?: string) => {
     try {
-      const query = `/transactions/all?page=${pageNum}${
-        cat ? `&category=${cat}` : ""
-      }`;
+      const query = `/transactions/all?page=${pageNum}${cat ? `&category=${cat}` : ""
+        }`;
 
       const res = await api.get(query);
 
@@ -47,6 +45,7 @@ const Bills = () => {
     try {
       const res = await api.get(`/transactions/${id}`);
       setSelected(res.data);
+      console.log(res.data)
     } catch (err) {
       console.error("Failed to fetch transaction details", err);
       const fallback = transactions.find((t) => t.id === id);
@@ -152,9 +151,8 @@ const Bills = () => {
                   </td>
 
                   <td
-                    className={`px-6 py-4 text-sm font-semibold ${
-                      Number(t.amount) >= 0 ? "text-red-600" : "text-green-600"
-                    }`}
+                    className={`px-6 py-4 text-sm font-semibold ${Number(t.amount) < 0 ? "text-red-600" : "text-green-600"
+                      }`}
                   >
                     ₹{Math.abs(Number(t.amount)).toFixed(2)}
                   </td>
@@ -237,6 +235,106 @@ const Bills = () => {
           </div>
         </Card>
       </div>
+      {selected && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl relative">
+
+            <button
+              className="absolute top-3 right-3 text-gray-500 hover:text-black"
+              onClick={() => setSelected(null)}
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <h2 className="text-2xl font-bold mb-4">Bill Details</h2>
+
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+              <div className="space-y-3 text-sm">
+
+                <div>
+                  <p className="font-semibold text-gray-700">Vendor</p>
+                  <p>{selected.vendor || ""}</p>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-700">Amount</p>
+                  <p>
+                    {selected.amount !== undefined ? `₹${Math.abs(Number(selected.amount)).toFixed(2)}` : ""}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-700">Category</p>
+                  <p>{selected.category || ""}</p>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-700">Payment Mode</p>
+                  <p>{selected.payment_mode || ""}</p>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-700">Transaction Date</p>
+                  <p>
+                    {selected.transaction_date
+                      ? new Date(selected.transaction_date).toLocaleDateString("en-IN")
+                      : ""}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-700">Status</p>
+                  <p className="capitalize">{selected.status || ""}</p>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-700">Description</p>
+                  <p>{selected.description || ""}</p>
+                </div>
+
+              </div>
+
+              <div>
+                <p className="font-semibold text-gray-700 mb-2">Bill Preview</p>
+
+                {selected.file_url ? (
+                  selected.file_url.toLowerCase().endsWith(".pdf") ? (
+                    <div className="w-full h-48 border rounded-lg flex items-center justify-center bg-gray-100">
+                      <p className="text-gray-600 text-sm">PDF Preview Not Available</p>
+                    </div>
+                  ) : (
+                    <img
+                      src={"http://localhost:5000" + selected.file_url}
+                      alt="Bill Preview"
+                      className="w-full h-48 object-contain rounded-lg border"
+                    />
+                  )
+                ) : (
+                  <div className="w-full h-48 border rounded-lg bg-gray-50 flex items-center justify-center text-gray-500">
+                    No File
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+            <Button
+              className="w-full mt-5 bg-blue-600 text-white"
+              onClick={() => {
+                if (selected.file_url) {
+                  window.open("http://localhost:5000" + selected.file_url, "_blank");
+                }
+              }}
+            >
+              Download Bill
+            </Button>
+
+          </div>
+        </div>
+      )}
+
     </DashboardLayout>
   );
 };
