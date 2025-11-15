@@ -336,16 +336,15 @@ const Dashboard = () => {
           {/* TREND LINE */}
           <Card className="lg:col-span-2 p-6 rounded-2xl shadow-lg">
             <h3 className="font-bold text-lg mb-4">Monthly Spending Trend</h3>
-            <div className="h-[260px] w-full">
+            <div className="h-[300px] w-[700px] translate-y-5">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={trendData}
-                  // margin ensures markers/lines/tooltips aren't clipped
-                  margin={{ top: 20, right: 12, bottom: 10, left: 8 }}
+                  margin={{ top: 20, right: 12, bottom: 8, left: 8 }}
                 >
                   <XAxis dataKey="month" />
                   <YAxis
-                    domain={[trendYDomain.min, trendYDomain.max]}
+                    domain={[-trendYDomain.min, trendYDomain.max]}
                     ticks={trendYTicks}
                     tickFormatter={(val) => `₹${Number(val).toFixed(0)}`}
                     axisLine={true}
