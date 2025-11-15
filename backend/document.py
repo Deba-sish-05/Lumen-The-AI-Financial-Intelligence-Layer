@@ -126,7 +126,7 @@ def add_document():
 
     # Normalize LLM output with safe defaults
     item_name = llm_data.get("item_name", "") or "Unknown Item"
-    amount = safe_float(llm_data.get("amount", 0))
+    amount = safe_float(-llm_data.get("amount", 0))
     category = (llm_data.get("category") or user_category or "Uncategorized")
     payment_mode = llm_data.get("payment_mode", "") or "Unknown"
     tx_date_raw = llm_data.get("transaction_date", "")
