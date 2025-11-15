@@ -5,7 +5,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { InsightCard } from "@/components/dashboard/InsightCard";
 import { AlertCard } from "@/components/dashboard/AlertCard";
 import { Card } from "@/components/ui/card";
-
+import { ReferenceLine } from "recharts";
 import {
   Zap,
   ShoppingBasket,
@@ -30,7 +30,8 @@ import {
 const Dashboard = () => {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  
   // Fetch all transactions
   useEffect(() => {
     (async () => {
@@ -54,7 +55,7 @@ const Dashboard = () => {
       const d = new Date(t.transaction_date);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
-  }, [transactions]);
+  }, [transactions, currentMonth, currentYear]);
 
   // TOTAL SPENT THIS MONTH
   const totalSpent = monthlyTxns.reduce(
@@ -92,6 +93,14 @@ const Dashboard = () => {
     color: categoryColors[name] || "gray",
   }));
 
+  // compute highest category safely (avoid mutating categoryData with sort)
+  const highestCategory = useMemo(() => {
+    if (!categoryData.length) return "N/A";
+    const copy = [...categoryData];
+    copy.sort((a, b) => b.value - a.value);
+    return copy[0].name;
+  }, [categoryData]);
+
   // MONTHLY TREND GRAPH
   const monthsOrder = [
     "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
@@ -101,18 +110,72 @@ const Dashboard = () => {
   transactions.forEach((t) => {
     const d = new Date(t.transaction_date);
     const m = monthsOrder[d.getMonth()];
-    monthTotals[m] = (monthTotals[m] || 0) + Number(t.amount);
+    // use signed amount: positive = income, negative = expense
+    const amt = Number(t.amount) || 0;
+    monthTotals[m] = (monthTotals[m] || 0) + amt;
   });
+
 
   const trendData = monthsOrder.map((m) => ({
     month: m,
-    value: monthTotals[m] || 0,
+    value: Number(monthTotals[m] || 0),
   }));
 
+  const trendYDomain = useMemo(() => {
+    const vals = trendData.map((d) => {
+      const n = Number(d.value);
+      return Number.isFinite(n) ? n : 0;
+    });
 
-  // -------------------------------------------------------------
-  // PREDICTION METHOD (Median interval for grocery, bills, education)
-  // -------------------------------------------------------------
+    if (vals.length === 0) return { rawMin: -1, rawMax: 1, min: -10, max: 10 };
+
+    const vmin = Math.min(...vals);
+    const vmax = Math.max(...vals);
+
+    if (vmax === 0 && vmin === 0) {
+      return { rawMin: 0, rawMax: 0, min: -10, max: 10 };
+    }
+
+    const range = vmax - vmin;
+    const padding = range === 0 ? Math.max(1, Math.abs(vmax) * 0.1) : Math.abs(range) * 0.12;
+
+    let paddedMin = vmin - padding;
+    let paddedMax = vmax + padding;
+
+    if (vmin < 0 && vmax > 0) {
+      paddedMin = Math.min(paddedMin, vmin - padding, -padding);
+      paddedMax = Math.max(paddedMax, vmax + padding, padding);
+    }
+
+    const roundDown10 = (x: number) => Math.floor(x / 10) * 10;
+    const roundUp10 = (x: number) => Math.ceil(x / 10) * 10;
+
+    let min = roundDown10(paddedMin);
+    let max = roundUp10(paddedMax);
+
+    if (min === max) {
+      const base = Math.abs(min) || 10;
+      min = min - 10;
+      max = max + 10;
+    }
+
+    if (max - min < 10) {
+      min = min - 10;
+      max = max + 10;
+      min = roundDown10(min);
+      max = roundUp10(max);
+    }
+
+    return { rawMin: vmin, rawMax: vmax, min, max };
+  }, [trendData]);
+
+  const trendYTicks = useMemo(() => {
+    const { min, max } = trendYDomain;
+    const top = Number(max);
+    if (!Number.isFinite(top)) return [];
+    return [top];
+  }, [trendYDomain]);
+
   function computeNextPurchase(category: string) {
     const filtered = transactions
       .filter((t) => t.category === category)
@@ -152,10 +215,6 @@ const Dashboard = () => {
   const billsPrediction = computeNextPurchase("bills");
   const educationPrediction = computeNextPurchase("education");
 
-
-  // -------------------------------------------------------------
-  // ALERTS (These ALWAYS appear, but description changes by data)
-  // -------------------------------------------------------------
   function foodSpikeDescription() {
     const weekMs = 7 * 24 * 3600 * 1000;
     const now = new Date();
@@ -235,7 +294,6 @@ const Dashboard = () => {
       : "Your grocery buying pattern is irregular.";
   }
 
-
   // RENDER
   if (loading) {
     return (
@@ -260,11 +318,7 @@ const Dashboard = () => {
           />
           <StatCard
             title="Highest Category"
-            value={
-              categoryData.length
-                ? categoryData.sort((a, b) => b.value - a.value)[0].name
-                : "N/A"
-            }
+            value={highestCategory}
             subtitle="Top category"
             colorScheme="info-blue"
           />
@@ -284,9 +338,19 @@ const Dashboard = () => {
             <h3 className="font-bold text-lg mb-4">Monthly Spending Trend</h3>
             <div className="h-[260px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trendData}>
+                <LineChart
+                  data={trendData}
+                  // margin ensures markers/lines/tooltips aren't clipped
+                  margin={{ top: 20, right: 12, bottom: 10, left: 8 }}
+                >
                   <XAxis dataKey="month" />
-                  <YAxis hide />
+                  <YAxis
+                    domain={[trendYDomain.min, trendYDomain.max]}
+                    ticks={trendYTicks}
+                    tickFormatter={(val) => `₹${Number(val).toFixed(0)}`}
+                    axisLine={true}
+                    tickLine={false}
+                  />
                   <Tooltip />
                   <Line
                     type="natural"
