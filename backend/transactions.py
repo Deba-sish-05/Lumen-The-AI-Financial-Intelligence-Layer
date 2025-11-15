@@ -5,6 +5,32 @@ from datetime import datetime
 
 transactions_bp = Blueprint("transactions", __name__, url_prefix="/transactions")
 
+@transactions_bp.get("/<int:transaction_id>")
+@jwt_required()
+def get_transaction(transaction_id):
+    user_id = int(get_jwt_identity())
+
+    tx = Transaction.query.filter_by(id=transaction_id, user_id=user_id).first()
+    if not tx:
+        return jsonify({"error": "Transaction not found"}), 404
+
+    doc = Document.query.filter_by(transaction_id=transaction_id).first()
+
+    return jsonify({
+        "id": tx.id,
+        "item_name": tx.item_name,
+        "amount": tx.amount,
+        "category": tx.category,
+        "payment_mode": tx.payment_mode,
+        "transaction_date": tx.transaction_date.isoformat(),
+        "vendor": tx.vendor,
+        "description": tx.description,
+        "tags": tx.tags,
+        "created_at": tx.created_at.isoformat(),
+        "file_url": doc.file_url if doc else None,
+        "status": doc.status if doc else "verified"
+    }), 200
+
 @transactions_bp.get("/all")
 @jwt_required()
 def get_transactions():

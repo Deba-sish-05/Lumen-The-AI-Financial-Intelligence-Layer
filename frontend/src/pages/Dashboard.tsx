@@ -118,7 +118,7 @@ const Dashboard = () => {
 
   const trendData = monthsOrder.map((m) => ({
     month: m,
-    value: Number(monthTotals[m] || 0),
+    value: Number(-monthTotals[m] || 0),
   }));
 
   const trendYDomain = useMemo(() => {
@@ -311,7 +311,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard
             title="Total Spent This Month"
-            value={`₹${totalSpent.toFixed(2)}`}
+            value={`₹${-totalSpent.toFixed(2)}`}
             subtitle="This month"
             trend="up"
             colorScheme="teal"
@@ -324,7 +324,7 @@ const Dashboard = () => {
           />
           <StatCard
             title="Avg. Spend / Day"
-            value={`₹${avgSpendPerDay.toFixed(2)}`}
+            value={`₹${-avgSpendPerDay.toFixed(2)}`}
             subtitle="Daily average"
             colorScheme="insight-purple"
           />
