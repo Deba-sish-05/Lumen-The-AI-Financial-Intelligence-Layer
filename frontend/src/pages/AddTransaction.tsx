@@ -105,7 +105,7 @@ const AddTransaction = () => {
 
               {/* Amount */}
               <div className="space-y-2">
-                <Label>Amount (₹) *</Label>
+                <Label>Amount (₹) (-ve if spent)*</Label>
                 <Input
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}

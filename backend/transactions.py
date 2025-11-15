@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from model import db, Transaction,Document
 from datetime import datetime
+from sqlalchemy import func, desc, asc
 
 transactions_bp = Blueprint("transactions", __name__, url_prefix="/transactions")
 
@@ -36,18 +37,25 @@ def get_transaction(transaction_id):
 def get_transactions():
     user_id = int(get_jwt_identity())
     page = int(request.args.get("page", 1))
-    category_filter = request.args.get("category", "").strip().lower()
+    per_page = int(request.args.get("per_page", 20))
+    category_filter = (request.args.get("category") or "").strip()
+    sort = (request.args.get("sort") or "created_desc").lower()
 
-    # Base query
     query = Transaction.query.filter_by(user_id=user_id)
 
-    # Apply category filter ONLY if provided
     if category_filter:
-        query = query.filter(Transaction.category == category_filter)
+        query = query.filter(func.lower(Transaction.category) == category_filter.lower())
 
-    query = query.order_by(Transaction.created_at.desc())
+    if sort == "asc":
+        query = query.order_by(asc(Transaction.transaction_date))
+    elif sort == "desc":
+        query = query.order_by(desc(Transaction.transaction_date))
+    elif sort == "created_asc":
+        query = query.order_by(asc(Transaction.created_at))
+    else:
+        query = query.order_by(desc(Transaction.created_at))
 
-    paginated = query.paginate(page=page, per_page=20, error_out=False)
+    paginated = query.paginate(page=page, per_page=per_page, error_out=False)
 
     transactions = []
     for t in paginated.items:
@@ -73,8 +81,9 @@ def get_transactions():
         "total_pages": paginated.pages,
         "total": paginated.total,
         "category_filter": category_filter or None,
+        "sort": sort,
+        "per_page": per_page
     }), 200
-
 
 @transactions_bp.post("/add")
 @jwt_required()
