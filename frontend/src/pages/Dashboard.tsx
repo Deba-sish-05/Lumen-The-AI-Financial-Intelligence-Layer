@@ -334,34 +334,36 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* TREND LINE */}
-          <Card className="lg:col-span-2 p-6 rounded-2xl shadow-lg">
-            <h3 className="font-bold text-lg mb-4">Monthly Spending Trend</h3>
-            <div className="h-[300px] w-[600px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={trendData}
-                  margin={{ top: 20, right: 12, bottom: 8, left: 8 }}
-                >
-                  <XAxis dataKey="month" />
-                  <YAxis
-                    domain={[-trendYDomain.min, trendYDomain.max]}
-                    ticks={trendYTicks}
-                    tickFormatter={(val) => `₹${Number(val).toFixed(0)}`}
-                    axisLine={true}
-                    tickLine={false}
-                  />
-                  <Tooltip />
-                  <Line
-                    type="natural"
-                    dataKey="value"
-                    stroke="hsl(var(--info-blue))"
-                    strokeWidth={3}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
+<Card className="lg:col-span-2 p-6 rounded-2xl shadow-lg">
+  <h3 className="font-bold text-lg mb-4">Monthly Spending Trend</h3>
+
+  <div className="w-full h-[45vh] min-h-[250px]">
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart
+        data={trendData}
+        margin={{ top: 20, right: 12, bottom: 8, left: 8 }}
+      >
+        <XAxis dataKey="month" />
+        <YAxis
+          domain={[-trendYDomain.min, trendYDomain.max]}
+          ticks={trendYTicks}
+          tickFormatter={(val) => `₹${Number(val).toFixed(0)}`}
+          axisLine={true}
+          tickLine={false}
+        />
+        <Tooltip />
+        <Line
+          type="natural"
+          dataKey="value"
+          stroke="hsl(var(--info-blue))"
+          strokeWidth={3}
+          dot={false}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
+</Card>
+
 
           {/* CATEGORY PIE */}
           <Card className="p-6 rounded-2xl shadow-lg">
