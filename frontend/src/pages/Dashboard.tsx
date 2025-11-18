@@ -336,7 +336,7 @@ const Dashboard = () => {
           {/* TREND LINE */}
           <Card className="lg:col-span-2 p-6 rounded-2xl shadow-lg">
             <h3 className="font-bold text-lg mb-4">Monthly Spending Trend</h3>
-            <div className="h-[300px] w-[700px]">
+            <div className="h-[300px] w-[600px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={trendData}
