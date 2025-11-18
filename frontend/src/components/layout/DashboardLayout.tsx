@@ -13,6 +13,7 @@ import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
+import api from "@/lib/api"; // ✅ ADDED
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -31,24 +32,26 @@ const navigation = [
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navigate = useNavigate();
 
-  // ---------------------------------------------------
-  // FETCH FIRST LETTER FROM JWT CLAIMS STORED IN TOKEN
-  // ---------------------------------------------------
-  const [initial, setInitial] = useState("U");
+  // ---------------------------------------------------------
+  // FETCH REAL USER DATA → Updates avatar after profile edit
+  // ---------------------------------------------------------
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    try {
-      const token = localStorage.getItem("access_token");
-      if (!token) return;
+    const fetchUser = async () => {
+      try {
+        const res = await api.get("/auth/me");
+        setUser(res.data);
+      } catch (err) {
+        console.error("Failed to load user for navbar:", err);
+      }
+    };
 
-      const payload = JSON.parse(atob(token.split(".")[1])); // decode JWT body
-      const fullName = payload?.name || "";
+    fetchUser();
 
-      const first = fullName.trim().split(" ")[0]; // extract first name
-      if (first) setInitial(first[0].toUpperCase());
-    } catch (err) {
-      console.error("Failed to decode token:", err);
-    }
+    // Listen for refresh event triggered from Profile & Dashboard
+    window.addEventListener("refresh-user", fetchUser);
+    return () => window.removeEventListener("refresh-user", fetchUser);
   }, []);
 
   return (
@@ -106,14 +109,19 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 Your financial insights powered by LUMEN AI
               </p>
             </div>
+
+            {/* ------------------------------------------ */}
+            {/* 🔥 Updated Avatar — shows live first letter */}
+            {/* ------------------------------------------ */}
             <Avatar 
               className="cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate("/profile")}
             >
               <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                {initial}
+                {user?.first_name?.[0]?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
+
           </div>
         </header>
 
